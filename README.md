@@ -4,9 +4,7 @@ Secure dual-partition firmware update flow for ESP32 or STM32 with signed image 
 
 ## Portfolio Purpose
 
-This repository is an Embedded Systems project scaffold for the Rheslar portfolio. It is designed to become a hardware-backed project with build output, validation logs, and reviewable implementation evidence.
-
-All generated Embedded Systems repos are C++17-first and are framed around C++ design patterns and SOLID design principles.
+This repository implements a host-testable OTA update planner for both MCU dual-partition firmware and Embedded Linux A/B rootfs systems. It validates signed manifests, HTTPS artifact policy, staged rollout buckets, rollback counters, slot health, Linux rootfs bundle requirements, and automatic fallback behavior.
 
 ## Stack
 
@@ -19,6 +17,8 @@ All generated Embedded Systems repos are C++17-first and are framed around C++ d
 - ECDSA
 - TLS
 - Rollback logic
+- Embedded Linux
+- A/B rootfs
 
 ## Quick Start
 
@@ -31,11 +31,12 @@ ctest --test-dir build --output-on-failure
 
 ## Implementation Slices
 
-- C++17 starter executable that exposes the project identity, stack, and validation target.
-- Small strategy-style readiness check that keeps the scaffold aligned with C++ design patterns.
-- Architecture document with control boundaries, data flow, safety assumptions, and evidence plan.
-- CTest smoke test that keeps source, docs, and CI files present as the repo grows.
-- GitHub Actions workflow for configure, build, executable smoke run, and repository validation.
+- MCU firmware update planning for inactive slot installation.
+- Embedded Linux A/B rootfs update planning for RAUC/Mender-style bundles.
+- HTTPS, signature, SHA-256, rollback counter, target compatibility, and staged rollout gates.
+- Failed trial boot rollback to the previous confirmed slot.
+- Text evidence reports for deployment logs.
+- CTest coverage for Linux rootfs updates, MCU updates, rollout rejection, insecure URI rejection, and rollback.
 
 ## Evidence Target
 

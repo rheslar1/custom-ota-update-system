@@ -1,17 +1,20 @@
 # Validation Plan
 
-## Current Scaffold Checks
+## Current Host Checks
 
 - CMake configure completes.
-- C++17 starter executable builds.
-- Executable prints the project title, SOLID marker, stack, and validation target.
-- CTest verifies the project profile and readiness strategy.
+- C++17 OTA planner builds.
+- Executable emits accepted plans for Embedded Linux A/B rootfs and MCU dual-slot firmware.
+- CTest verifies Linux rootfs policy, MCU policy, staged rollout, HTTPS enforcement, and rollback behavior.
+- GitHub Actions runs configure, build, executable smoke run, and CTest.
 
 ## Hardware Evidence To Add
 
-- Board, simulator, or bus setup photo.
-- Terminal output from the first successful run.
-- Timing, power, memory, or safety measurement relevant to this project.
+- Linux systemd service log for manifest fetch and inactive rootfs install.
+- RAUC/Mender/SWUpdate install transcript.
+- MCUboot or ESP-IDF OTA slot-state transcript.
+- Failed trial boot rollback evidence.
+- Signed manifest and SHA-256 verification evidence.
 - CI screenshot after the public repository is pushed.
 
 ## Project-Specific Evidence Target

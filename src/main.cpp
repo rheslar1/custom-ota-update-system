@@ -1,63 +1,27 @@
-#include <array>
+#include "ota/OtaUpdate.hpp"
+
 #include <iostream>
-#include <string_view>
-
-class IReadinessRule {
- public:
-  virtual ~IReadinessRule() = default;
-  virtual bool passes(std::string_view evidenceTarget) const = 0;
-  virtual std::string_view name() const = 0;
-};
-
-class RequiredEvidenceRule final : public IReadinessRule {
- public:
-  bool passes(std::string_view evidenceTarget) const override {
-    return !evidenceTarget.empty();
-  }
-
-  std::string_view name() const override {
-    return "RequiredEvidenceRule";
-  }
-};
-
-struct ProjectProfile {
-  std::string_view title;
-  std::string_view summary;
-  std::string_view evidenceTarget;
-  std::array<std::string_view, 9> tags;
-};
-
-constexpr ProjectProfile profile{
-  "Custom OTA Update System",
-  "Secure dual-partition firmware update flow for ESP32 or STM32 with signed image verification, staged rollouts, and automatic fallback.",
-  "Production deployment pipelines, secure update handling, flash layout discipline, and field recovery behavior.",
-  {
-    "C++17",
-    "C++ Design Patterns",
-    "SOLID",
-    "ESP32/STM32",
-    "Dual partition",
-    "MCUboot",
-    "ECDSA",
-    "TLS",
-    "Rollback logic"
-  }
-};
 
 int main() {
-  const RequiredEvidenceRule readinessRule;
+  ota::SimulatedManifestVerifier verifier;
+  ota::OtaUpdatePlanner planner(ota::OtaPolicy{}, verifier);
+  ota::TextPlanReporter reporter(std::cout);
 
-  std::cout << profile.title << '\n';
-  std::cout << "Summary: " << profile.summary << '\n';
-  std::cout << "Evidence target: " << profile.evidenceTarget << '\n';
-  std::cout << "Readiness rule: " << readinessRule.name() << '\n';
-  std::cout << "SOLID marker: C++17 strategy interface with replaceable readiness rule" << '\n';
-  std::cout << "Stack:";
+  std::cout << "Custom OTA Update System\n";
+  std::cout << "Targets: MCU dual-partition firmware and Embedded Linux A/B rootfs\n\n";
 
-  for (std::size_t index = 0; index < profile.tags.size(); ++index) {
-    std::cout << ' ' << profile.tags[index] << (index + 1U == profile.tags.size() ? "" : ",");
-  }
-
+  const auto linuxPlan = planner.plan(ota::demoLinuxDevice(),
+                                      ota::activeLinuxSlot(),
+                                      ota::inactiveLinuxSlot(),
+                                      ota::demoLinuxManifest());
+  reporter.publish(linuxPlan);
   std::cout << '\n';
-  return readinessRule.passes(profile.evidenceTarget) ? 0 : 1;
+
+  ota::UpdateSlot mcuA{"slot_a", ota::SlotRole::Active, "1.4.0", true, true, 0U};
+  ota::UpdateSlot mcuB{"slot_b", ota::SlotRole::Inactive, "1.3.9", true, true, 0U};
+  const auto mcuPlan =
+      planner.plan(ota::demoMcuDevice(), mcuA, mcuB, ota::demoMcuManifest());
+  reporter.publish(mcuPlan);
+
+  return linuxPlan.accepted && mcuPlan.accepted ? 0 : 1;
 }
